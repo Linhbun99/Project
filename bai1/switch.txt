@@ -1,0 +1,108 @@
+#include <string.h>
+#include <omnetpp.h>
+#include <iostream>
+#include <string>
+#include <queue>
+
+using namespace omnetpp;
+using namespace std;
+
+class Host: public cSimpleModule {
+private:
+    int EXB_SIZE;
+    double RUNING_TIME; //thời gian chạy giả lập
+    double MSG_GEN_INTERVAL;// chu kì sinh gói tin mới
+    double CHANNEL_DELAY = 0.015;// thời gian truyền một gói tin
+
+    int lastestMsgId = -1;
+
+    // source queue
+    queue<int> SQ;
+
+    // exit buffer
+    queue<int> EXB;
+
+    void generateMessage();
+    void SQtoEXB(); // chuyen goi tin tu queue toi exitbuffer
+    void sendMsg(); // gui goi tin tu exb den nut dich
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
+};
+
+Define_Module(Host);
+
+void Host::initialize() {
+    // lay gia tri co cac bien tu file ned bang ham par()
+    MSG_GEN_INTERVAL = getParentModule()->par("MSG_GEN_INTERVAL").doubleValue();
+    RUNING_TIME = getParentModule()->par("RUNING_TIME").doubleValue();
+    EXB_SIZE = par("EXB_SIZE").intValue();
+
+    // khoi tao goi tin genarate tai thoi diem bat dau chay chuong trinh
+    scheduleAt(0, new cMessage("generate"));
+    // khoi tao goi tin send tai thoi diem bat dau chay chuong trinh
+    scheduleAt(0, new cMessage("send"));
+}
+
+void Host::handleMessage(cMessage *msg) {
+    // nếu thời gian chạy giả lập >= running time thì kết thúc
+
+    if (simTime() >= RUNING_TIME){
+        return;
+    }
+
+    // nếu msg là generate
+    if (strcmp(msg->getName(), "generate") == 0) {
+        generateMessage();
+        // kiểm tra EXB còn chỗ trống không?
+        if (EXB.size() < EXB_SIZE) {
+            SQtoEXB();
+        }
+        // thực hiện lại sau mỗi khoảng thời gian = MSG_GEN_INTERVAL
+        scheduleAt(simTime() + MSG_GEN_INTERVAL, msg);
+
+    }
+
+
+    // nếu msg là send
+    if (strcmp(msg->getName(), "send") == 0) {
+        //gửi một gói tin từ EXB sau đó đưa một gói tin trong SQ lên EXB
+        sendMsg();
+        SQtoEXB();
+        // lặp lại sau mỗi khoảng = CHANNEL_DELAY
+        scheduleAt(simTime() + CHANNEL_DELAY, msg);
+    }
+}
+
+void Host::generateMessage() {
+    // push id của gói tin mới được tạo vào SQ
+    SQ.push(++lastestMsgId);
+    EV << "message generated" << endl;
+}
+
+void Host::SQtoEXB(){;
+    if (!SQ.empty()){
+        int msgId = SQ.front();
+        SQ.pop();
+        EXB.push(msgId);
+    }
+}
+
+void Host::sendMsg(){
+    if (!EXB.empty()) {
+        // lấy id của gói tin gửi đến host
+        int sentMsgId = EXB.front();
+        EXB.pop();
+
+        // Tạo gói tin để gửi
+        cMessage *sentMsg = new cMessage("sentMsg");
+
+        // Gán id cho gói tin
+        cMsgPar *msgParam = new cMsgPar("msgId");
+        msgParam->setLongValue(sentMsgId);
+        sentMsg->addPar(msgParam);
+
+        // Gửi
+        send(sentMsg, "out");
+    }
+}
