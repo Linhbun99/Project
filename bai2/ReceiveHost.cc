@@ -14,7 +14,7 @@ void ReceivingHost::initialize() {
     // Thiết lập hằng số
     TIMEOUT = getParentModule()->par("TIMEOUT").doubleValue();
     INTERVAL = getParentModule()->par("INTERVAL").doubleValue();
-
+    sumMsg = 0;
     // Khởi tạo mảng lưu kết quả
     arrayLength = TIMEOUT / INTERVAL;
     receivedMsgCount = new int[arrayLength];
@@ -32,6 +32,8 @@ void ReceivingHost::handleMessage(cMessage *msg) {
 
     // Nhận và đếm gói tin
     if (strcmp(msg->getName(), "testMsg") == 0) {
+        send(new cMessage("freeConnect"), "out");
+        sumMsg++;
         int msgId = msg->par("msgId").longValue();
         EV << "Switch received testMsg id = " << msgId << endl;
         receivedMsgCount[intervalCount]++;
@@ -56,11 +58,11 @@ void ReceivingHost::finish() {
         EV << "interval " << i << ", received " << receivedMsgCount[i]
                   << " messages" << endl;
     }
-    int sum = 0;
-    for (int i = 0; i < arrayLength; i++) {
-        sum += receivedMsgCount[i];
-    }
+//    int sum = 0;
+//    for (int i = 0; i < arrayLength; i++) {
+//        sum += receivedMsgCount[i];
+//    }
     EV << "Interval = " << INTERVAL * 1000 << " ms" << endl;
     EV << "Tổng số interval: " << arrayLength << endl;
-    EV << "Tổng số gói tin nhận được " << sum << endl;
+    EV << "Tổng số gói tin nhận được " << sumMsg << endl;
 }

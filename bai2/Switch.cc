@@ -13,7 +13,7 @@ private:
     double CREDIT_DELAY;
     double OPERATION_TIME_PERIOD;
     double CHANNEL_DELAY;
-//    bool isFree;
+    bool isBusy;
     int ENB_SIZE;
     int EXB_SIZE;
 
@@ -76,7 +76,6 @@ void Switch::handleMessage(cMessage *msg) {
         ENBtoEXB(ENBid);
         delete msg;
 
-        // Sau 1 khoảng thời gian thì báo lại cho hop trước
         cMessage *notifMsg = new cMessage("incNumSpaces");
         prevENBid = ENBid;
         scheduleAt(simTime() + CREDIT_DELAY, notifMsg);
@@ -92,18 +91,30 @@ void Switch::handleMessage(cMessage *msg) {
         delete msg;
         return;
     }
+    if(strcmp(msg->getName(), "freeConnect") == 0){
+            isBusy = false;
+            delete msg;
+        }
 
+        if(!isBusy){
+            //sendToReceiver();
+//            isbusy = true;
+            scheduleAt(simTime() + OPERATION_TIME_PERIOD, new cMessage("send"));
+        }
     // EXB -> next hop
     if (strcmp(event, "send") == 0 ) {
         EV << "sending";
         if (!EXB.empty()){
+            if(!isBusy){
             cMessage *sentMsg = EXB.front();
             EXB.pop();
             send(sentMsg, "out");
+            isBusy = true;
+            }
 //            isFree = false;
         }
-        scheduleAt(simTime() + CHANNEL_DELAY, msg);
-        return;
+//        scheduleAt(simTime() + CHANNEL_DELAY, msg);
+//        return;
     }
 
     // Chu kỳ hđ của switch
