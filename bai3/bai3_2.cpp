@@ -20,20 +20,20 @@ void builtConnections(int k) {
 			for (int i=0; i<k; i++) {
 				for (int j=0; j<k; j++) {
 					if (i>0) {
-						cout<< (i-1)*k+j<<"line 23";
+//						cout<< (i-1)*k+j<<"line 23";
 						v[i*k+j].push_back((i-1)*k+j);
 					}
 					
 					if (j>0) {
-						cout<<i*k+j-1<<" line 28 ";
+//						cout<<i*k+j-1<<" line 28 ";
 						v[i*k+j].push_back(i*k+j-1);
 					}
 						if (j<k-1) {
-						cout<<i*k+j+1<<" line 32 ";
+//						cout<<i*k+j+1<<" line 32 ";
 						v[i*k+j].push_back(i*k+j+1);
 					}
 					if (i<k-1) {
-						cout<< (i+1)*k+j<<" line 37 ";
+//						cout<< (i+1)*k+j<<" line 37 ";
 						v[i*k+j].push_back((i+1)*k+j);
 					}
 					
