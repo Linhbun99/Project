@@ -72,12 +72,12 @@ void setSwitchPositon(int k){
 	for(int i =0; i<k*k; i++){
 	 	x =200+ i/k*200;
 	 	y =200+ i%k*200;
-	 	fprintf(fptr,"switch%d: Switch { @display(\"p=%d,%d;i=abstract/switch\"); }\n",i, x, y);
+	 	fprintf(fptr,"switch%d: Switch { @display(\"p=%d,%d;i=device/switch\"); }\n",i, x, y);
 	 }
 	 for(int i =0; i<k*k; i++){
 	 	x =200+ i/k*200;
 	 	y =200+ i%k*200;
-	 	fprintf(fptr,"host%d: Host  { @display(\"p=%d,%d;\i=abstract/server;is=s\"); }\n",i,x-50,y-50);
+	 	fprintf(fptr,"host%d: Host  { @display(\"p=%d,%d;\i=device/pc;is=s\"); }\n",i,x-50,y-50);
 	 }
 }
 
@@ -107,16 +107,16 @@ int main(){
 	
 	fptr = fopen("C:\\Users\\linhq\\Desktop\\output.txt","w");
 	
-	fprintf(fptr,"simple Host\n{\nparameters:\n@display(\"i=device/pc_s\");\n\ngates:\ninout port[];\n}\nsimple Switch\n{\nparameters:\n@display(\"i=device/switch\");\n\ngates:\ninout port[];\n}\nnetwork Network\n{\nparameters:\n@display(\"bgb=1356.1,682.825\");\n");
+	fprintf(fptr,"simple Host{\n    parameters:        	\n	int EXB_SIZE = 3;\n        int ENB_SIZE = 3;\n	gates:\n	    inout port[];\n}\nsimple Switch{\n    parameters:\n		int EXB_SIZE = 3;\n        int ENB_SIZE = 3;\n        double OPERATION_TIME_PERIOD = 3334e-9; \n    gates:\n       inout port[];\n}\nnetwork Network{\n    parameters:\n         double SIM_TIME = 1; \n               double MSG_GEN_TIME_PERIOD = 0.1e-3;\n                double INTERVAL = 0.01; \n                double CREDIT_DELAY = 1e-9; \n    @display(\"bgb=1000,700\");\n");
 
 	
-	
-	fprintf(fptr,"types:\nchannel Channel extends ned.DelayChannel\n{delay = 15ms;}\nsubmodules:\n");
+	fprintf(fptr,"\n    types:\n        channel Channel extends ned.DatarateChannel        {\n            datarate = 1Gbps;\n        }\nsubmodules:\n");
 	setSwitchPositon(k);
 	
 	fprintf(fptr,"\nconnections:\n");
 	
 	switch2switch(k);
+		
 	switch2host(k);
 	
 	fprintf(fptr,"}");
